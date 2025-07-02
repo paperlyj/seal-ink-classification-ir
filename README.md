@@ -50,10 +50,12 @@ README.md
    ))
 
 2. **(Optional) Activate TensorFlow GPU environment**
+    ```r
    library(reticulate)
    use_condaenv("tf_gpu", required = TRUE)
 
-3. **Run scripts in sequence**
+4. **Run scripts in sequence**
+    ```r
    source("Principal Component Analysis (PCA).R")
    source("Partial Least-Squares Discriminant Analysis (PLS-DA).R")
    source("K-Nearest Neighbor (KNN).R")
@@ -61,7 +63,7 @@ README.md
    source("Random Forest (RF).R")
    source("Feed-Forward Neural Networks (FNN).R")
 
-4. **Inspect predictions**
+6. **Inspect predictions**
    Open Unknown_predictions.xlsx to view the softmax probabilities for the unknown ink samples.
 
 ## Key Findings
