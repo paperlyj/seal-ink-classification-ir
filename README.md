@@ -1,30 +1,80 @@
-# Infrared Spectroscopy & Machine Learning Classification of Red Stamp Inks
+# Infrared Spectroscopy & Machine Learning Classification of Red-Stamp Inks
 
 ## Overview
-This project implements a forensic workflow to classify red stamp (seal) inks on questioned documents using ATR-FTIR spectroscopy and machine learning. By combining spectral preprocessing, dimensionality reduction, and supervised classification models, we aim to provide a rapid, nondestructive, and objective tool for forensic ink analysis.
+A forensic workflow to classify commercial red-stamp inks on Hansol Copy™ paper using ATR-FTIR spectroscopy and machine learning. We compare five classifiers—PLS-DA, k-NN, SVM, RF, and a feed-forward neural network (FNN)—across multiple spectral ranges and preprocessing methods, validate model robustness, and predict the origins of unknown samples.
 
-## Data
-The dataset consists of ATR-FTIR spectra collected from individual stamp impressions on Hansol Copy™ paper. Ten commercial red stamp ink products from five countries were acquired, with 8–32 distinct product lots per brand (128 total spectra). Three additional “unknown” ink samples were included for final model predictions. Raw and Savitzky–Golay second-derivative spectra are stored in `Summary.xlsx` (sheets: “Summary” & “Selected”).
+## Data  
+All spectra are stored in **Spectra.xlsx** with four worksheets:
 
-## Key Features
-- **Data Import & L2 Normalization**: Load spectral data from Excel and apply Euclidean norm normalization.  
-- **Savitzky–Golay 2nd-Derivative Filtering**: Enhance spectral resolution and reduce baseline effects.  
-- **Principal Component Analysis (PCA)**: Visualize high-dimensional spectra in 2D space.  
-- **Supervised Classification**:
-  - Partial Least Squares Discriminant Analysis (PLS-DA)
-  - k-nearest neighbors algorithm (k-NN)
-  - Support Vector Machine (SVM) 
-  - Random Forest (RF)    
-  - Feed-Forward Neural Network (FNN)  
-- **Feature Importance Analysis**: Identify critical wavenumber ranges (1650–1200 cm⁻¹) driving model decisions.  
-- **Validation**: Stratified train/test split, three-fold cross-validation, and F1-score metrics.  
-- **Unknown Sample Prediction**: Classify three unlabelled inks using the final FNN model.
+- **Entire** (4000–700 cm⁻¹)  
+  Raw full-range spectra (1877 variables).  
+- **Selected1** (1700–900 cm⁻¹)  
+  Savitzky–Golay 2nd-derivative spectra (457 variables).  
+- **Selected2** (1650–1100 cm⁻¹)  
+  VIP-selected sub-range (314 variables).  
+- **Unknown** (1700–900 cm⁻¹)  
+  Second-derivative spectra of three unlabelled ink samples for final prediction.
 
-## Paper Information
-This code supports the manuscript:  
-**“Infrared Spectroscopy and Machine Learning for Classification of Red Stamp Inks on Questioned Documents”**  
-Submitted to *Journal of Chemometrics*.
+## Key Components
 
-## Paper Link
-The preprint and supplementary information will be made available upon publication.
+1. **Preprocessing**  
+   - L2 normalization  
+   - Savitzky–Golay 2nd-derivative + L2
 
+2. **Modeling Pipeline**  
+   - 3-fold cross-validation grid-search over learning rate (1e-4–1e-1), optimizer (`adam`/`sgd`), hidden units (16–512)  
+   - Final FNN retrained on full training set (500 epochs)
+
+3. **Validation & Metrics**  
+   - Macro-F1 score  
+   - 30 random-seed repeats → mean ± SD of Test F1  
+   - Y-scrambling control  
+   - One-vs-rest ROC & AUC curves
+
+4. **Feature Selection**  
+   - VIP analysis highlights 1650–1100 cm⁻¹ as most informative
+
+5. **Unknown-Sample Prediction**  
+   - Apply final FNN to **Unknown** sheet  
+   - Export predicted softmax probabilities for each manufacturer
+
+## File Structure
+
+├── fnn_performance_comparison.R # Main R script
+├── Spectra.xlsx # Spectral data sheets: Entire, Selected1, Selected2, Unknown
+├── Unknown_predictions.xlsx # Output: predicted probabilities for unknown inks
+└── README.md # This file
+
+**Usage**
+
+1. **Clone the repository**
+git clone https://github.com/your-username/seal-ink-classification-ir.git
+cd seal-ink-classification-ir
+Install R packages
+
+2. **Install R packages**
+install.packages(c(
+  "reticulate","keras","caret","MLmetrics","openxlsx",
+  "prospectr","pROC","PRROC","tibble","ggplot2"
+))
+
+3. **Activate Conda environment**
+library(reticulate)
+use_condaenv("tf_gpu", required = TRUE)
+Run the analysis
+
+4. **Run the analysis**
+source("fnn_performance_comparison.R")
+Inspect predictions
+
+5. **Inspect predictions**
+View Unknown_predictions.xlsx for softmax probabilities.
+
+**Key Findings**
+- Best model: FNN on 2nd-derivative spectra in 1700–900 cm⁻¹ (Test F1 = 1.000; AUC = 1.000)
+
+- Interpretable alternatives: PLS-DA & RF (F1 ≥ 0.933)
+
+- Critical sub-range: 1650–1100 cm⁻¹ (VIP analysis)
+
+- Unknown inks: High-confidence manufacturer predictions
