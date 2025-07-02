@@ -1,80 +1,57 @@
 # Infrared Spectroscopy & Machine Learning Classification of Red-Stamp Inks
 
 ## Overview
-A forensic workflow to classify commercial red-stamp inks on Hansol Copy™ paper using ATR-FTIR spectroscopy and machine learning. We compare five classifiers—PLS-DA, k-NN, SVM, RF, and a feed-forward neural network (FNN)—across multiple spectral ranges and preprocessing methods, validate model robustness, and predict the origins of unknown samples.
+A forensic workflow to classify commercial red-stamp inks on Hansol Copy™ paper using ATR-FTIR spectroscopy and machine learning. Five classifiers are compared—PLS-DA, k-NN, SVM, RF, and a feed-forward neural network (FNN)—across multiple spectral ranges and preprocessing methods. Model robustness is validated, and unknown samples are predicted.
 
-## Data  
-All spectra are stored in **Spectra.xlsx** with four worksheets:
+## Data
+All spectra are stored in **Spectra.xlsx**, containing four worksheets:
 
 - **Entire** (4000–700 cm⁻¹)  
-  Raw full-range spectra (1877 variables).  
+  Raw full-range spectra (1877 variables)  
 - **Selected1** (1700–900 cm⁻¹)  
-  Savitzky–Golay 2nd-derivative spectra (457 variables).  
+  Savitzky–Golay 2nd-derivative spectra (457 variables)  
 - **Selected2** (1650–1100 cm⁻¹)  
-  VIP-selected sub-range (314 variables).  
+  VIP-selected sub-range (314 variables)  
 - **Unknown** (1700–900 cm⁻¹)  
-  Second-derivative spectra of three unlabelled ink samples for final prediction.
+  Second-derivative spectra of three unlabelled ink samples  
 
 ## Key Components
 
 1. **Preprocessing**  
-   - L2 normalization  
-   - Savitzky–Golay 2nd-derivative + L2
+   L2 normalization and Savitzky–Golay 2nd-derivative + L2  
 
 2. **Modeling Pipeline**  
-   - 3-fold cross-validation grid-search over learning rate (1e-4–1e-1), optimizer (`adam`/`sgd`), hidden units (16–512)  
-   - Final FNN retrained on full training set (500 epochs)
+   Three-fold cross-validation grid search over learning rate, optimizer, and hidden-unit count, followed by a final FNN trained on the full dataset  
 
 3. **Validation & Metrics**  
-   - Macro-F1 score  
-   - 30 random-seed repeats → mean ± SD of Test F1  
-   - Y-scrambling control  
-   - One-vs-rest ROC & AUC curves
+   Macro-F1 score, 30 random-seed repeats (mean ± SD), y-scrambling control, and one-vs-rest ROC/AUC curves  
 
 4. **Feature Selection**  
-   - VIP analysis highlights 1650–1100 cm⁻¹ as most informative
+   VIP analysis identifies 1650–1100 cm⁻¹ as the most informative region  
 
 5. **Unknown-Sample Prediction**  
-   - Apply final FNN to **Unknown** sheet  
-   - Export predicted softmax probabilities for each manufacturer
+   Final FNN applied to the “Unknown” sheet, exporting predicted softmax probabilities  
 
 ## File Structure
 
-├── fnn_performance_comparison.R # Main R script
-├── Spectra.xlsx # Spectral data sheets: Entire, Selected1, Selected2, Unknown
-├── Unknown_predictions.xlsx # Output: predicted probabilities for unknown inks
-└── README.md # This file
+- **fnn_performance_comparison.R** &mdash; Main R analysis script  
+- **Spectra.xlsx** &mdash; Spectral data (Entire, Selected1, Selected2, Unknown)  
+- **Unknown_predictions.xlsx** &mdash; Output file with predicted probabilities  
+- **README.md** &mdash; This documentation  
 
-**Usage**
+## Usage
+To publish this project on GitHub, simply create a new repository on GitHub.com and use the “Upload files” button to add the contents of this folder (the R script, the Excel file, and this README). Once uploaded, commit the changes. 
 
-1. **Clone the repository**
-git clone https://github.com/your-username/seal-ink-classification-ir.git
-cd seal-ink-classification-ir
-Install R packages
+If you prefer a local Git workflow, install Git on your computer, initialize this folder as a Git repository, add and commit all files, then connect it to your GitHub repository and push.
 
-2. **Install R packages**
-install.packages(c(
-  "reticulate","keras","caret","MLmetrics","openxlsx",
-  "prospectr","pROC","PRROC","tibble","ggplot2"
-))
+After uploading, other users can clone or download the repository, install the required R packages, and run the `fnn_performance_comparison.R` script to reproduce the analysis and generate predictions for the unknown inks.
 
-3. **Activate Conda environment**
-library(reticulate)
-use_condaenv("tf_gpu", required = TRUE)
-Run the analysis
+## Key Findings
 
-4. **Run the analysis**
-source("fnn_performance_comparison.R")
-Inspect predictions
+- **Best model**: FNN on 2nd-derivative spectra (1700–900 cm⁻¹) achieved perfect Test F1 (1.000) and AUC (1.000)  
+- **Interpretable alternatives**: PLS-DA and RF also performed strongly (F1 ≥ 0.933)  
+- **Critical sub-range**: 1650–1100 cm⁻¹  
+- **Unknown inks**: High-confidence manufacturer predictions  
 
-5. **Inspect predictions**
-View Unknown_predictions.xlsx for softmax probabilities.
-
-**Key Findings**
-- Best model: FNN on 2nd-derivative spectra in 1700–900 cm⁻¹ (Test F1 = 1.000; AUC = 1.000)
-
-- Interpretable alternatives: PLS-DA & RF (F1 ≥ 0.933)
-
-- Critical sub-range: 1650–1100 cm⁻¹ (VIP analysis)
-
-- Unknown inks: High-confidence manufacturer predictions
+## License
+This project is licensed under the MIT License.  
