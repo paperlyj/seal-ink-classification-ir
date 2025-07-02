@@ -1,57 +1,71 @@
 # Infrared Spectroscopy & Machine Learning Classification of Red-Stamp Inks
 
-## Overview
-A forensic workflow to classify commercial red-stamp inks on Hansol Copy™ paper using ATR-FTIR spectroscopy and machine learning. Five classifiers are compared—PLS-DA, k-NN, SVM, RF, and a feed-forward neural network (FNN)—across multiple spectral ranges and preprocessing methods. Model robustness is validated, and unknown samples are predicted.
+A forensic workflow to classify ten commercial red-stamp ink brands on Hansol Copy™ paper using ATR-FTIR spectroscopy and machine learning. Five classifiers are compared—PLS-DA, k-NN, SVM, RF, and a feed-forward neural network (FNN)—across multiple spectral ranges and preprocessing methods. Model robustness is validated via cross-validation, random-seed repeats, y-scrambling, and ROC/AUC curves. Finally, the workflow predicts the manufacturers of three unknown ink samples.
 
-## Data
-All spectra are stored in **Spectra.xlsx**, containing four worksheets:
+## Data  
+All spectral data are provided as Excel files in the repository root:
 
-- **Entire** (4000–700 cm⁻¹)  
-  Raw full-range spectra (1877 variables)  
-- **Selected1** (1700–900 cm⁻¹)  
-  Savitzky–Golay 2nd-derivative spectra (457 variables)  
-- **Selected2** (1650–1100 cm⁻¹)  
-  VIP-selected sub-range (314 variables)  
-- **Unknown** (1700–900 cm⁻¹)  
-  Second-derivative spectra of three unlabelled ink samples  
+- **Entire.xlsx**  
+  Full raw spectra (4000–700 cm⁻¹; 1877 variables)  
+- **Selected_1.xlsx**  
+  Savitzky–Golay 2nd-derivative spectra (1700–900 cm⁻¹; 457 variables)  
+- **Selected_2.xlsx**  
+  VIP-selected sub-range spectra (1650–1100 cm⁻¹; 314 variables)  
+- **Unknown.xlsx**  
+  2nd-derivative spectra (1700–900 cm⁻¹) of three unlabelled ink samples  
 
-## Key Components
+## Analysis Scripts  
+- `Principal Component Analysis (PCA).R`  
+- `Partial Least-Squares Discriminant Analysis (PLS-DA).R`  
+- `K-Nearest Neighbor (KNN).R`  
+- `Support Vector Machine (SVM).R`  
+- `Random Forest (RF).R`  
+- `Feed-Forward Neural Networks (FNN).R`  
 
-1. **Preprocessing**  
-   L2 normalization and Savitzky–Golay 2nd-derivative + L2  
+Each script loads its matching Excel sheet, applies preprocessing, trains and evaluates its model, and—in the case of `FNN.R`—produces `Unknown_predictions.xlsx`.
 
-2. **Modeling Pipeline**  
-   Three-fold cross-validation grid search over learning rate, optimizer, and hidden-unit count, followed by a final FNN trained on the full dataset  
+## File Structure  
+Entire.xlsx
+Selected_1.xlsx
+Selected_2.xlsx
+Unknown.xlsx
+Principal Component Analysis (PCA).R
+Partial Least-Squares Discriminant Analysis (PLS-DA).R
+K-Nearest Neighbor (KNN).R
+Support Vector Machine (SVM).R
+Random Forest (RF).R
+Feed-Forward Neural Networks (FNN).R
+Unknown_predictions.xlsx
+LICENSE
+README.md
 
-3. **Validation & Metrics**  
-   Macro-F1 score, 30 random-seed repeats (mean ± SD), y-scrambling control, and one-vs-rest ROC/AUC curves  
 
-4. **Feature Selection**  
-   VIP analysis identifies 1650–1100 cm⁻¹ as the most informative region  
+## Usage  
+1. **Install required R packages**  
+   ```r
+   install.packages(c(
+     "prospectr","caret","MLmetrics","openxlsx",
+     "pROC","PRROC","reticulate","keras",
+     "tibble","ggplot2"
+   ))
 
-5. **Unknown-Sample Prediction**  
-   Final FNN applied to the “Unknown” sheet, exporting predicted softmax probabilities  
+2. **(Optional) Activate TensorFlow GPU environment**
+   library(reticulate)
+   use_condaenv("tf_gpu", required = TRUE)
 
-## File Structure
+3. **Run scripts in sequence**
+   source("Principal Component Analysis (PCA).R")
+   source("Partial Least-Squares Discriminant Analysis (PLS-DA).R")
+   source("K-Nearest Neighbor (KNN).R")
+   source("Support Vector Machine (SVM).R")
+   source("Random Forest (RF).R")
+   source("Feed-Forward Neural Networks (FNN).R")
 
-- **fnn_performance_comparison.R** &mdash; Main R analysis script  
-- **Spectra.xlsx** &mdash; Spectral data (Entire, Selected1, Selected2, Unknown)  
-- **Unknown_predictions.xlsx** &mdash; Output file with predicted probabilities  
-- **README.md** &mdash; This documentation  
-
-## Usage
-To publish this project on GitHub, simply create a new repository on GitHub.com and use the “Upload files” button to add the contents of this folder (the R script, the Excel file, and this README). Once uploaded, commit the changes. 
-
-If you prefer a local Git workflow, install Git on your computer, initialize this folder as a Git repository, add and commit all files, then connect it to your GitHub repository and push.
-
-After uploading, other users can clone or download the repository, install the required R packages, and run the `fnn_performance_comparison.R` script to reproduce the analysis and generate predictions for the unknown inks.
+4. **Inspect predictions**
+   Open Unknown_predictions.xlsx to view the softmax probabilities for the unknown ink samples.
 
 ## Key Findings
-
-- **Best model**: FNN on 2nd-derivative spectra (1700–900 cm⁻¹) achieved perfect Test F1 (1.000) and AUC (1.000)  
-- **Interpretable alternatives**: PLS-DA and RF also performed strongly (F1 ≥ 0.933)  
-- **Critical sub-range**: 1650–1100 cm⁻¹  
-- **Unknown inks**: High-confidence manufacturer predictions  
-
-## License
-This project is licensed under the MIT License.  
+- Best model: FNN on 2nd-derivative spectra (1700–900 cm⁻¹) achieved perfect Test F1 (= 1.000) and AUC (= 1.000)
+- Interpretable alternatives: PLS-DA & RF also performed strongly (F1 ≥ 0.933)
+- Critical sub-range: 1650–1100 cm⁻¹ identified by VIP analysis
+- Unknown inks: High-confidence manufacturer probability predictions 
